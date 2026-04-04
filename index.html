@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Postermania</title>
+    <link rel="icon" type="image/x-icon" href="favicon.png">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tone.js for Sound Effects -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+    <!-- Google Fonts: Chakra Petch for headings, Space Mono for body -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@700&family=Space+Mono:wght@400&display=swap" rel="stylesheet">
+    <style>
+        /* Custom styles for the new theme */
+        body {
+            font-family: 'Space Mono', monospace;
+            background-color: #111827; /* Dark background (bg-gray-900) */
+            background-image: 
+                linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+            background-size: 30px 30px;
+        }
+        
+        h1, h2, h3 { font-family: 'Chakra Petch', sans-serif; }
+
+        /* --- Interactive Cursor Styles --- */
+        .cursor-dot, .cursor-outline { display: none; }
+        
+        @media (hover: hover) and (pointer: fine) {
+            body { cursor: none; }
+            .cursor-dot, .cursor-outline {
+                display: block; position: fixed; top: 0; left: 0;
+                transform: translate(-50%, -50%); border-radius: 50%;
+                z-index: 9999; pointer-events: none;
+                transition: transform 0.2s ease-out, width 0.2s ease-out, height 0.2s ease-out;
+            }
+            .cursor-dot {
+                width: 8px; height: 8px; background-color: #a78bfa;
+                box-shadow: 0 0 10px #a78bfa, 0 0 20px #a78bfa;
+            }
+            .cursor-outline {
+                width: 40px; height: 40px; border: 2px solid rgba(167, 139, 250, 0.5);
+            }
+            body:has(a:hover, button:hover, input:hover, textarea:hover) .cursor-dot {
+                transform: translate(-50%, -50%) scale(0.5);
+            }
+            body:has(a:hover, button:hover, input:hover, textarea:hover) .cursor-outline {
+                transform: translate(-50%, -50%) scale(1.5); border-color: rgba(167, 139, 250, 1);
+            }
+        }
+
+        .poster-card {
+            position: relative;
+            background-color: rgba(31, 41, 55, 0.5); border: 1px solid #4b5563;
+            backdrop-filter: blur(8px);
+            transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, opacity 0.4s ease;
+            overflow: hidden;
+        }
+        .poster-card:hover {
+            transform: translateY(-8px); border-color: #a78bfa;
+            box-shadow: 0 0 25px rgba(167, 139, 250, 0.4);
+        }
+        .poster-card.hidden {
+            display: none;
+        }
+
+        .new-indicator {
+            position: absolute; top: 12px; right: 12px; width: 24px; height: 24px;
+            background-color: #a78bfa; color: #111827; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: bold; font-size: 16px; z-index: 10;
+            box-shadow: 0 0 10px rgba(167, 139, 250, 0.7);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            transform: scale(1);
+        }
+        .poster-card.viewed .new-indicator { opacity: 0; transform: scale(0); }
+
+        #modal { transition: opacity 0.3s ease, visibility 0.3s ease; }
+        #modal-content {
+            border: 1px solid #a78bfa; background-color: #1f2937;
+            transition: transform 0.3s ease;
+            box-shadow: 0 0 30px rgba(167, 139, 250, 0.5);
+        }
+        
+        body.modal-open { overflow: hidden; }
+
+        .animate-on-scroll { opacity: 0; transform: translateY(30px); transition: opacity 0.5s ease-out, transform 0.5s ease-out; }
+        .animate-on-scroll.is-visible { opacity: 1; transform: translateY(0); }
+
+        #glitch-heading { position: relative; animation: glitch-skew 1s infinite linear alternate-reverse; }
+        #glitch-heading::before, #glitch-heading::after { content: attr(data-text); position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        #glitch-heading::before { left: 2px; text-shadow: -2px 0 #ff00c1; clip-path: polygon(0 0, 100% 0, 100% 45%, 0 45%); animation: glitch-anim 5s infinite linear alternate-reverse; }
+        #glitch-heading::after { left: -2px; text-shadow: -2px 0 #00fff9, 2px 2px #ff00c1; clip-path: polygon(0 50%, 100% 50%, 100% 100%, 0 100%); animation: glitch-anim2 5s infinite linear alternate-reverse; }
+        @keyframes glitch-anim { 0% { clip-path: polygon(0 2%, 100% 2%, 100% 23%, 0 23%); } 5% { clip-path: polygon(0 63%, 100% 63%, 100% 88%, 0 88%); } 100% { clip-path: polygon(0 42%, 100% 42%, 100% 58%, 0 58%); } }
+        @keyframes glitch-anim2 { 0% { clip-path: polygon(0 67%, 100% 67%, 100% 89%, 0 89%); } 6% { clip-path: polygon(0 8%, 100% 8%, 100% 38%, 0 38%); } 100% { clip-path: polygon(0 55%, 100% 55%, 100% 64%, 0 64%); } }
+        @keyframes glitch-skew { 0% { transform: skew(0deg); } 1% { transform: skew(1deg); } 2% { transform: skew(0deg); } 3% { transform: skew(-1deg); } 4% { transform: skew(0deg); } 100% { transform: skew(0deg); } }
+
+        #to-top-button { transition: opacity 0.3s, visibility 0.3s; }
+
+        .filter-btn { background-color: rgba(31, 41, 55, 0.5); border: 1px solid #4b5563; transition: background-color 0.3s, border-color 0.3s, color 0.3s; }
+        .filter-btn:hover { background-color: rgba(55, 65, 81, 0.7); border-color: #6b7280; }
+        .filter-btn.active { background-color: #a78bfa; border-color: #a78bfa; color: #111827; font-weight: bold; }
+
+        #transmission-log h2::after { content: '_'; animation: blink 1s step-end infinite; color: #a78bfa; }
+        @keyframes blink { 50% { opacity: 0; } }
+        #transmission-log li { opacity: 0; transition: opacity 0.5s ease; }
+
+        .tool-tag { background-color: rgba(167, 139, 250, 0.1); border: 1px solid rgba(167, 139, 250, 0.3); color: #a78bfa; padding: 4px 8px; font-size: 0.75rem; border-radius: 4px; text-transform: uppercase; }
+        
+        #preloader {
+            position: fixed; top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            background-color: #111827; z-index: 10000;
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Space Mono', monospace; color: #a78bfa; font-size: 1.25rem;
+            opacity: 1; transition: opacity 0.5s ease;
+        }
+        #preloader.hidden { opacity: 0; pointer-events: none; }
+        #preloader-text::after { content: '_'; animation: blink 1s step-end infinite; }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-300">
+
+    <div id="preloader"><span id="preloader-text">DECRYPTING_FILES...</span></div>
+    <div class="cursor-outline"></div>
+    <div class="cursor-dot"></div>
+
+    <header class="sticky top-0 z-20 bg-gray-900/70 backdrop-blur-md border-b border-gray-700">
+        <div class="container mx-auto px-6 py-4">
+            <h1 id="glitch-heading" data-text="POSTERMANIA" class="text-2xl md:text-3xl font-bold text-white tracking-wider">POSTERMANIA</h1>
+            <p class="mt-1 text-gray-400">Declassified design projects and visual experiments.</p>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-6 py-12">
+        <p class="text-center text-lg text-gray-400 mb-12 max-w-2xl mx-auto">
+            Welcome to my personal gallery. Each poster represents a story, a burst of creativity, or a design challenge. Click any poster to see a larger version and learn more.
+        </p>
+        
+        <section id="about" class="mb-16 p-8 rounded-lg border border-gray-700 bg-gray-800/50 backdrop-blur-md">
+            <h2 class="text-2xl font-bold text-violet-400 text-center mb-4">ABOUT THE ARTIST</h2>
+            <p class="text-center max-w-3xl mx-auto text-gray-400">
+                I'm a digital artist and graphic designer passionate about blending futuristic aesthetics with modern typography. This space is my visual playground—a collection of personal projects, experiments, and client work. My goal is to push creative boundaries and explore new techniques.
+            </p>
+        </section>
+
+        <div id="filter-container" class="flex justify-center flex-wrap gap-2 md:gap-4 mb-12">
+            <button class="filter-btn active px-4 py-2 rounded-md text-sm font-medium" data-filter="all">ALL</button>
+            <button class="filter-btn px-4 py-2 rounded-md text-sm font-medium" data-filter="featured">FEATURED</button>
+            <button class="filter-btn px-4 py-2 rounded-md text-sm font-medium" data-filter="request">COMMUNITY</button>
+            <button class="filter-btn px-4 py-2 rounded-md text-sm font-medium" data-filter="glass">LIQUID GLASS</button>
+            <button class="filter-btn px-4 py-2 rounded-md text-sm font-medium" data-filter="ai">AI EXPERIMENTS</button>
+            <button class="filter-btn px-4 py-2 rounded-md text-sm font-medium" data-filter="typography">TYPOGRAPHY</button>
+        </div>
+
+        <div id="gallery" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
+            <div class="poster-card animate-on-scroll rounded-lg overflow-hidden cursor-pointer lg:col-span-3" data-category="featured" data-poster-id="featured-2" data-tools="Photoshop,Illustrator" onclick="openModal(this)">
+                <span class="new-indicator">!</span>
+                <img loading="lazy" src="posters/featured2.png" alt="Featured2" class="w-full h-auto" data-large-src="posters/featured2.png">
+                <div class="p-5"><h3 class="text-2xl font-semibold text-violet-400">Postermania Banner</h3><p class="text-gray-400 mt-1">The new Postermania featured banner.</p></div>
+            </div>
+            <div class="poster-card animate-on-scroll rounded-lg overflow-hidden cursor-pointer lg:col-span-3" data-category="featured" data-main-visible="false" data-poster-id="featured-1" data-tools="Photoshop" onclick="openModal(this)">
+                <span class="new-indicator">!</span>
+                <img loading="lazy" src="posters/featured.png" alt="Featured" class="w-full h-auto" data-large-src="posters/featured.png">
+                <div class="p-5"><h3 class="text-xl font-semibold text-violet-400">Featured Postermania Banner</h3><p class="text-gray-400 mt-1">This was the first featured poster. It's now archived from the 'All' view.</p></div>
+            </div>
+            <div class="poster-card animate-on-scroll rounded-lg overflow-hidden cursor-pointer" data-category="glass" data-poster-id="poster-2" data-tools="Photoshop" onclick="openModal(this)">
+                 <span class="new-indicator">!</span>
+                <img loading="lazy" src="posters/a4color_esdeekid.jpg" alt="EsDeeKid" class="w-full h-auto" data-large-src="posters/a4color_esdeekid.jpg">
+                <div class="p-5"><h3 class="text-xl font-semibold text-violet-400">EsDeeKid - Cali Man</h3><p class="text-gray-400 mt-1">Again with the liquid glass.</p></div>
+            </div>
+            <div class="poster-card animate-on-scroll rounded-lg overflow-hidden cursor-pointer" data-category="ai glass" data-poster-id="poster-3" data-tools="Photoshop,AI-Generated" onclick="openModal(this)">
+                 <span class="new-indicator">!</span>
+                <img loading="lazy" src="posters/Tyler The Creator.jpg" alt="Tyler The Creator" class="w-full h-auto" data-large-src="posters/Tyler The Creator.jpg">
+                <div class="p-5"><h3 class="text-xl font-semibold text-violet-400">Tyler The Creator - See You Again</h3><p class="text-gray-400 mt-1">AI experimentation along with liquid glass technique.</p></div>
+            </div>
+            <div class="poster-card animate-on-scroll rounded-lg overflow-hidden cursor-pointer" data-category="typography" data-poster-id="poster-4" data-tools="Photoshop" onclick="openModal(this)">
+                 <span class="new-indicator">!</span>
+                <img loading="lazy" src="posters/heavyweight.jpg" alt="Yeat" class="w-full h-auto" data-large-src="posters/heavyweight.jpg">
+                <div class="p-5"><h3 class="text-xl font-semibold text-violet-400">Yeat - Hëavyweight</h3><p class="text-gray-400 mt-1">Full brainstorming.</p></div>
+            </div>
+            <div class="poster-card animate-on-scroll rounded-lg overflow-hidden cursor-pointer" data-category="glass" data-poster-id="poster-5" data-tools="Photoshop" onclick="openModal(this)">
+                 <span class="new-indicator">!</span>
+                <img loading="lazy" src="posters/Untitled-1.jpg" alt="Jessie Murph" class="w-full h-auto" data-large-src="posters/Untitled-1.jpg">
+                <div class="p-5"><h3 class="text-xl font-semibold text-violet-400">Jessie Murph - Always Been You</h3><p class="text-gray-400 mt-1">Taking requests from my friends and their favourite artists.</p></div>
+            </div>
+            <div class="poster-card animate-on-scroll rounded-lg overflow-hidden cursor-pointer" data-category="typography" data-poster-id="poster-6" data-tools="Photoshop" onclick="openModal(this)">
+                 <span class="new-indicator">!</span>
+                <img loading="lazy" src="highres_posters/dave.png" alt="Dave" class="w-full h-auto" data-large-src="posters/dave.jpg">
+                <div class="p-5"><h3 class="text-xl font-semibold text-violet-400">Santan Dave - We Are All Alone In This Together</h3><p class="text-gray-400 mt-1">Typography and texture printing.</p></div>
+            </div>
+            <div class="poster-card animate-on-scroll rounded-lg overflow-hidden cursor-pointer" data-category="glass" data-poster-id="poster-7" data-tools="Photoshop" onclick="openModal(this)">
+                 <span class="new-indicator">!</span>
+                <img loading="lazy" src="posters/Yeat.jpg" alt="Yeat" class="w-full h-auto" data-large-src="posters/Yeat.jpg">
+                <div class="p-5"><h3 class="text-xl font-semibold text-violet-400">Yeat - Comë n Go</h3><p class="text-gray-400 mt-1">A test with Apple's Liquid Glass technique.</p></div>
+            </div>
+        </div>
+
+        <h2 class="text-3xl font-bold text-violet-400 text-center my-16 animate-on-scroll">Community Requests</h2>
+        <div id="community-gallery" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
+            <div class="poster-card animate-on-scroll rounded-lg overflow-hidden cursor-pointer" data-category="typography request" data-poster-id="poster-8" data-tools="Photoshop" onclick="openModal(this)">
+                 <span class="new-indicator">!</span>
+                <img loading="lazy" src="posters/gunsnroses.png" alt="Guns n' Roses" class="w-full h-auto" data-large-src="posters/gunsnroses.png">
+                <div class="p-5"><h3 class="text-xl font-semibold text-violet-400">Guns n' Roses - Appetite for Destruction</h3><p class="text-gray-400 mt-1">Request from Alfie.</p></div>
+            </div>
+            <div class="poster-card animate-on-scroll rounded-lg overflow-hidden cursor-pointer" data-category="typography request" data-poster-id="poster-9" data-tools="Photoshop" onclick="openModal(this)">
+                 <span class="new-indicator">!</span>
+                <img loading="lazy" src="posters/afterhours.png" alt="After Hours" class="w-full h-auto" data-large-src="posters/afterhours.png">
+                <div class="p-5"><h3 class="text-xl font-semibold text-violet-400">The Weeknd - After Hours</h3><p class="text-gray-400 mt-1">Request from Kyle.</p></div>
+            </div>
+        </div>
+    </main>
+
+     <!-- Transmission Log Section -->
+    <section class="container mx-auto px-6 py-12">
+        <div id="transmission-log" class="p-8 rounded-lg border border-gray-700 bg-gray-800/50 backdrop-blur-md max-w-3xl mx-auto">
+            <h2 class="text-2xl font-bold text-violet-400 mb-4">TRANSMISSION LOG</h2>
+            <ul class="space-y-2 text-gray-400 font-mono text-sm">
+                <li><span class="text-violet-400 mr-2">[20251014-2055-F8E1]</span>&gt; REQ_RECEIVED: 'Guns n Roses'. STATUS: <span class="text-green-400">COMPLETED</span></li>
+                <li><span class="text-violet-400 mr-2">[20251014-2056-K4G5]</span>&gt; REQ_RECEIVED: 'The Weeknd'. STATUS: <span class="text-green-400">COMPLETED</span></li>
+            </ul>
+        </div>
+    </section>
+    
+    <!-- Poster Request Form Section -->
+    <section id="contact" class="container mx-auto px-6 py-12">
+        <div class="p-8 rounded-lg border border-gray-700 bg-gray-800/50 backdrop-blur-md max-w-3xl mx-auto">
+            <h2 class="text-2xl font-bold text-violet-400 text-center mb-2">REQUEST A POSTER</h2>
+            <p class="text-center text-gray-400 mb-6">Have an idea for a poster? Fill out the form below and I'll consider it for a future design. (with credits towards you)</p>
+            <form action="https://formspree.io/f/mwprwrzj" method="POST" class="space-y-6">
+                <!-- New Type Selector -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-400 mb-2">Select Request Type</label>
+                    <div class="grid grid-cols-2 gap-4">
+                        <button type="button" id="type-artist" class="filter-btn active w-full py-2">Artist / Band</button>
+                        <button type="button" id="type-celebrity" class="filter-btn w-full py-2">Celebrity</button>
+                    </div>
+                </div>
+    
+                <!-- Artist Fields (Visible by default) -->
+                <div id="artist-fields">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="artist" class="block text-sm font-medium text-gray-400 mb-2">Artist Name</label>
+                            <input type="text" name="Artist" id="artist" required class="w-full bg-gray-900/50 border border-gray-600 rounded-md p-3 text-white focus:ring-violet-400 focus:border-violet-400 transition">
+                        </div>
+                        <div>
+                            <label for="album" class="block text-sm font-medium text-gray-400 mb-2">Album / Single Name</label>
+                            <input type="text" name="Album" id="album" required class="w-full bg-gray-900/50 border border-gray-600 rounded-md p-3 text-white focus:ring-violet-400 focus:border-violet-400 transition">
+                        </div>
+                    </div>
+                     <div class="mt-6">
+                        <label for="song" class="block text-sm font-medium text-gray-400 mb-2">Specific Song (Optional)</label>
+                        <input type="text" name="Song" id="song" class="w-full bg-gray-900/50 border border-gray-600 rounded-md p-3 text-white focus:ring-violet-400 focus:border-violet-400 transition">
+                    </div>
+                </div>
+    
+                <!-- Celebrity Fields (Hidden by default) -->
+                <div id="celebrity-fields" class="hidden">
+                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="celebrity-name" class="block text-sm font-medium text-gray-400 mb-2">Celebrity Name</label>
+                            <input type="text" name="Celebrity" id="celebrity-name" class="w-full bg-gray-900/50 border border-gray-600 rounded-md p-3 text-white focus:ring-violet-400 focus:border-violet-400 transition">
+                        </div>
+                         <div>
+                            <label for="celebrity-context" class="block text-sm font-medium text-gray-400 mb-2">Context / Theme</label>
+                            <input type="text" name="Context" id="celebrity-context" class="w-full bg-gray-900/50 border border-gray-600 rounded-md p-3 text-white focus:ring-violet-400 focus:border-violet-400 transition" placeholder="e.g., Movie role, event, etc.">
+                        </div>
+                    </div>
+                </div>
+    
+                <!-- Shared Fields -->
+                <div class="pt-6 border-t border-gray-700/50">
+                     <div>
+                        <label for="style" class="block text-sm font-medium text-gray-400 mb-2">Desired Style (e.g., Liquid Glass)</label>
+                        <input type="text" name="Style" id="style" required class="w-full bg-gray-900/50 border border-gray-600 rounded-md p-3 text-white focus:ring-violet-400 focus:border-violet-400 transition">
+                    </div>
+                </div>
+                 <div>
+                    <label for="email" class="block text-sm font-medium text-gray-400 mb-2">Your Email (To notify you if it gets made)</label>
+                    <input type="email" name="Email" id="email" required class="w-full bg-gray-900/50 border border-gray-600 rounded-md p-3 text-white focus:ring-violet-400 focus:border-violet-400 transition">
+                </div>
+                <div>
+                    <label for="Details" class="block text-sm font-medium text-gray-400 mb-2">Additional Details</label>
+                    <textarea name="Details" id="details" rows="4" class="w-full bg-gray-900/50 border border-gray-600 rounded-md p-3 text-white focus:ring-violet-400 focus:border-violet-400 transition"></textarea>
+                </div>
+                <button type="submit" class="w-full filter-btn active px-4 py-3 rounded-md font-bold">SUBMIT REQUEST</button>
+            </form>
+        </div>
+    </section>
+
+    <footer class="bg-gray-900/70 mt-12 border-t border-gray-700">
+        <div class="container mx-auto px-6 py-8 text-center text-gray-500">
+            <div class="flex justify-center gap-6 mb-6">
+                <a href="#" class="text-gray-500 hover:text-violet-400 transition-colors"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zM5.538 16.95c.538-.962 1.637-2.31 2.394-3.508c-.75-1.125-1.462-2.5-1.462-2.5s.45-1.2 1.763-1.462c1.312-.263 3.3.637 3.3.637l.45-1.725c.188-.713-1.088-3.413-1.088-3.413s2.475 1.575 2.85 3.825c.375 2.25-1.238 4.238-1.238 4.238s-2.025.975-2.025.975l.188.713c.75 2.812 2.662 4.987 2.662 4.987c-1.5.3-5.213-1.012-6.6-4.237z" clip-rule="evenodd" /></svg></a>
+                <a href="#" class="text-gray-500 hover:text-violet-400 transition-colors"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 4.418 2.865 8.168 6.839 9.492c.5.092.682-.217.682-.482c0-.237-.009-.868-.014-1.703c-2.782.605-3.369-1.343-3.369-1.343c-.454-1.158-1.11-1.466-1.11-1.466c-.908-.62.069-.608.069-.608c1.003.07 1.531 1.032 1.531 1.032c.892 1.53 2.341 1.088 2.91.832c.092-.647.35-1.088.636-1.338c-2.22-.253-4.555-1.113-4.555-4.951c0-1.093.39-1.988 1.03-2.688c-.103-.253-.446-1.272.098-2.65c0 0 .84-.27 2.75 1.026A9.564 9.564 0 0 1 12 6.844c.85.004 1.705.115 2.504.337c1.909-1.296 2.747-1.027 2.747-1.027c.546 1.379.203 2.398.1 2.65c.64.7 1.028 1.595 1.028 2.688c0 3.848-2.338 4.695-4.566 4.942c.359.308.678.92.678 1.855c0 1.338-.012 2.419-.012 2.747c0 .268.18.58.688.482A10.001 10.001 0 0 0 22 12c0-5.523-4.477-10-10-10z" clip-rule="evenodd" /></svg></a>
+            </div>
+            <p>&copy; 2025 Postermania // All Rights Reserved.</p>
+            <!--<p class="mt-2">Signal inbound: <a href="mailto:dumitruc.rob@gmail.com" class="text-violet-400 hover:underline">dumitruc.rob@gmail.com</a></p>-->
+        </div>
+    </footer>
+
+    <div id="modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80 backdrop-blur-sm invisible opacity-0" onclick="closeModal()">
+        <div id="modal-content" class="relative rounded-lg shadow-2xl max-w-4xl w-11/12 max-h-[90vh] flex flex-col md:flex-row transform scale-95" onclick="event.stopPropagation()">
+            <button onclick="closeModal()" class="absolute -top-4 -right-4 bg-gray-800 rounded-full p-2 shadow-lg hover:bg-gray-700 border border-violet-400 transition-colors z-30">
+                <svg class="h-6 w-6 text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+            <div class="relative flex-grow flex items-center justify-center md:w-2/3">
+                 <img id="modal-img" src="" alt="Enlarged Poster" class="rounded-t-lg md:rounded-l-lg md:rounded-t-none w-auto max-w-full h-auto max-h-[90vh] object-contain bg-black/20">
+                 <div id="modal-text-content" class="absolute bottom-0 left-0 w-full p-6 bg-gradient-to-t from-black/80 to-transparent text-white md:hidden">
+                    <h3 id="modal-title-mobile" class="text-xl font-bold"></h3>
+                    <p id="modal-description-mobile" class="text-sm mt-1"></p>
+                 </div>
+            </div>
+            <div class="p-6 md:flex flex-col justify-center md:w-1/3 hidden">
+                <h3 id="modal-title" class="text-2xl font-bold text-violet-400"></h3>
+                <p id="modal-description" class="text-gray-300 mt-2"></p>
+                <div id="modal-tools" class="mt-4">
+                    <h4 class="text-sm font-bold text-gray-400 uppercase tracking-wider mb-2">Process & Tools</h4>
+                    <div id="modal-tools-container" class="flex flex-wrap gap-2"></div>
+                </div>
+            </div>
+        </div>
+        <!-- Lightbox Navigation -->
+        <button id="prev-btn" class="absolute left-4 top-1/2 -translate-y-1/2 bg-gray-800/50 rounded-full p-2 text-white hover:bg-gray-700/70 z-20">
+            <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+        </button>
+        <button id="next-btn" class="absolute right-4 top-1/2 -translate-y-1/2 bg-gray-800/50 rounded-full p-2 text-white hover:bg-gray-700/70 z-20">
+            <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+        </button>
+    </div>
+
+    <button id="to-top-button" class="fixed bottom-5 right-5 bg-violet-500/50 text-white p-3 rounded-full shadow-lg hover:bg-violet-500/80 backdrop-blur-sm border border-violet-400 invisible opacity-0 z-10">
+         <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7" /></svg>
+    </button>
+    
+
+
+    <script>
+        // --- DOM Elements ---
+        const cursorDot = document.querySelector('.cursor-dot');
+        const cursorOutline = document.querySelector('.cursor-outline');
+        const modal = document.getElementById('modal');
+        const modalImg = document.getElementById('modal-img');
+        const modalTitle = document.getElementById('modal-title');
+        const modalDescription = document.getElementById('modal-description');
+        const modalTitleMobile = document.getElementById('modal-title-mobile');
+        const modalDescriptionMobile = document.getElementById('modal-description-mobile');
+        const modalToolsContainer = document.getElementById('modal-tools-container');
+        const modalContent = document.getElementById('modal-content');
+        const toTopButton = document.getElementById('to-top-button');
+        const filterContainer = document.getElementById('filter-container');
+        const gallery = document.getElementById('gallery');
+        const communityGallery = document.getElementById('community-gallery');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const preloader = document.getElementById('preloader');
+        const typeArtistBtn = document.getElementById('type-artist');
+        const typeCelebrityBtn = document.getElementById('type-celebrity');
+        const artistFields = document.getElementById('artist-fields');
+        const celebrityFields = document.getElementById('celebrity-fields');
+        const artistNameInput = document.getElementById('artist');
+        const albumNameInput = document.getElementById('album');
+        const celebrityNameInput = document.getElementById('celebrity-name');
+        const soundOnIcon = document.getElementById('sound-on-icon');
+        const soundOffIcon = document.getElementById('sound-off-icon');
+        
+        // --- State Variables ---
+        let currentPosterIndex = 0;
+        let visiblePosters = [];
+        const VIEWED_POSTERS_KEY = 'viewedPosters';
+
+
+        // --- Helper Functions ---
+        const getViewedPosters = () => {
+            const viewed = localStorage.getItem(VIEWED_POSTERS_KEY);
+            return viewed ? new Set(JSON.parse(viewed)) : new Set();
+        };
+
+        const setViewedPosters = (viewedSet) => {
+            localStorage.setItem(VIEWED_POSTERS_KEY, JSON.stringify(Array.from(viewedSet)));
+        };
+
+        const markPosterAsViewed = (element) => {
+            const posterId = element.dataset.posterId;
+            if (posterId && !element.classList.contains('viewed')) {
+                const viewedPosters = getViewedPosters();
+                viewedPosters.add(posterId);
+                setViewedPosters(viewedPosters);
+                element.classList.add('viewed');
+            }
+        };
+        
+        const handleDirectLink = () => {
+            const hash = window.location.hash;
+            if (hash.startsWith('#poster=')) {
+                const posterId = hash.substring('#poster='.length);
+                const posterToOpen = document.querySelector(`.poster-card[data-poster-id="${posterId}"]`);
+                if (posterToOpen) {
+                    openModal(posterToOpen);
+                }
+            }
+        };
+
+        // --- Modal & Lightbox Logic ---
+        function updateModalContent(posterElement) {
+            markPosterAsViewed(posterElement); // Mark as viewed on navigation
+            const img = posterElement.querySelector('img');
+            const title = posterElement.querySelector('h3').innerText;
+            const description = posterElement.querySelector('p').innerText;
+            const tools = posterElement.dataset.tools;
+            
+            modalImg.src = img.dataset.largeSrc || img.src;
+            modalTitle.innerText = title;
+            modalDescription.innerText = description;
+            modalTitleMobile.innerText = title;
+            modalDescriptionMobile.innerText = description;
+
+            // Update tools tags
+            modalToolsContainer.innerHTML = '';
+            if (tools) {
+                document.getElementById('modal-tools').style.display = 'block';
+                tools.split(',').forEach(tool => {
+                    const tag = document.createElement('span');
+                    tag.className = 'tool-tag';
+                    tag.textContent = tool.trim();
+                    modalToolsContainer.appendChild(tag);
+                });
+            } else {
+                 document.getElementById('modal-tools').style.display = 'none';
+            }
+        }
+
+        function showNextPoster() {
+            if (visiblePosters.length === 0) return;
+            currentPosterIndex = (currentPosterIndex + 1) % visiblePosters.length;
+            updateModalContent(visiblePosters[currentPosterIndex]);
+        }
+
+        function showPrevPoster() {
+            if (visiblePosters.length === 0) return;
+            currentPosterIndex = (currentPosterIndex - 1 + visiblePosters.length) % visiblePosters.length;
+            updateModalContent(visiblePosters[currentPosterIndex]);
+        }
+        
+        function openModal(element) {
+            openSound.triggerAttackRelease(["C4", "E4", "G4"], "16n");
+            visiblePosters = Array.from(document.querySelectorAll('.poster-card:not(.hidden)'));
+            currentPosterIndex = visiblePosters.indexOf(element);
+            
+            updateModalContent(element);
+            
+            document.body.classList.add('modal-open');
+            modal.classList.remove('invisible', 'opacity-0');
+            setTimeout(() => modalContent.classList.remove('scale-95'), 50);
+        }
+
+        function closeModal() {
+            clickSound.triggerAttackRelease('C4', '8n');
+            document.body.classList.remove('modal-open');
+            modalContent.classList.add('scale-95');
+            modal.classList.add('opacity-0');
+            setTimeout(() => modal.classList.add('invisible'), 300);
+        }
+
+        // --- Event Listeners ---
+        if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
+            window.addEventListener('mousemove', e => {
+                const posX = e.clientX;
+                const posY = e.clientY;
+                cursorDot.style.left = `${posX}px`;
+                cursorDot.style.top = `${posY}px`;
+                cursorOutline.animate({
+                    left: `${posX}px`,
+                    top: `${posY}px`
+                }, { duration: 500, fill: "forwards" });
+            });
+             document.body.addEventListener('mouseover', e => {
+                if (e.target.matches('a, button, .poster-card, input, textarea')) {
+                    hoverSound.triggerAttackRelease('C5', '16n');
+                }
+            });
+        }
+        
+
+
+        document.addEventListener('keydown', (event) => {
+            if (modal.classList.contains('invisible')) return;
+            if (event.key === 'Escape') closeModal();
+            if (event.key === 'ArrowRight') showNextPoster();
+            if (event.key === 'ArrowLeft') showPrevPoster();
+        });
+
+        document.addEventListener('contextmenu', e => { if (e.target.tagName === 'IMG') e.preventDefault() });
+        
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 200) toTopButton.classList.remove('invisible', 'opacity-0');
+            else toTopButton.classList.add('invisible', 'opacity-0');
+        });
+        
+        toTopButton.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+
+        prevBtn.addEventListener('click', (e) => { e.stopPropagation(); showPrevPoster(); clickSound.triggerAttackRelease('E4', '8n'); });
+        nextBtn.addEventListener('click', (e) => { e.stopPropagation(); showNextPoster(); clickSound.triggerAttackRelease('E4', '8n'); });
+
+
+        filterContainer.addEventListener('click', (event) => {
+            if (event.target.tagName !== 'BUTTON') return;
+            clickSound.triggerAttackRelease('G4', '8n');
+            filterContainer.querySelector('.active').classList.remove('active');
+            event.target.classList.add('active');
+
+            const filterValue = event.target.getAttribute('data-filter');
+
+            document.querySelectorAll('.poster-card').forEach(item => {
+                const itemCategories = item.getAttribute('data-category').split(' ');
+                const isMainVisible = item.getAttribute('data-main-visible') !== 'false';
+
+                if (filterValue === 'all') {
+                    if (isMainVisible) {
+                        item.classList.remove('hidden');
+                    } else {
+                        item.classList.add('hidden');
+                    }
+                } else {
+                    if (itemCategories.includes(filterValue)) {
+                        item.classList.remove('hidden');
+                    } else {
+                        item.classList.add('hidden');
+                    }
+                }
+            });
+        });
+
+        // --- Form Type Switching Logic ---
+        typeArtistBtn.addEventListener('click', () => {
+            clickSound.triggerAttackRelease('G4', '8n');
+            typeArtistBtn.classList.add('active');
+            typeCelebrityBtn.classList.remove('active');
+            artistFields.classList.remove('hidden');
+            celebrityFields.classList.add('hidden');
+
+            artistNameInput.required = true;
+            albumNameInput.required = true;
+            celebrityNameInput.required = false;
+        });
+
+        typeCelebrityBtn.addEventListener('click', () => {
+            clickSound.triggerAttackRelease('G4', '8n');
+            typeCelebrityBtn.classList.add('active');
+            typeArtistBtn.classList.remove('active');
+            celebrityFields.classList.remove('hidden');
+            artistFields.classList.add('hidden');
+
+            celebrityNameInput.required = true;
+            artistNameInput.required = false;
+            albumNameInput.required = false;
+        });
+
+        // --- Scroll Animation Logic ---
+        const scrollObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('is-visible');
+                    scrollObserver.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.animate-on-scroll').forEach(el => {
+            scrollObserver.observe(el);
+        });
+        
+        // --- Transmission Log Animation ---
+        const logObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if(entry.isIntersecting) {
+                    const logItems = entry.target.querySelectorAll('li');
+                    logItems.forEach((item, index) => {
+                        setTimeout(() => {
+                            item.style.opacity = '1';
+                        }, index * 200);
+                    });
+                    logObserver.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.5 });
+        
+        logObserver.observe(document.getElementById('transmission-log'));
+
+        // --- Initial Load Logic ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // Preloader Logic
+            const preloaderText = document.getElementById('preloader-text');
+            const phrases = [
+                'DECRYPTING_FILES...',
+                'VERIFYING_SIGNATURES...',
+                'ESTABLISHING_SECURE_LINK...',
+                'ACCESSING_MAIN_GRID...',
+                'TRANSMISSION_COMPLETE'
+            ];
+            let phraseIndex = 0;
+
+            const interval = setInterval(() => {
+                phraseIndex++;
+                if (phraseIndex < phrases.length) {
+                    preloaderText.textContent = phrases[phraseIndex];
+                } else {
+                    clearInterval(interval);
+                    preloader.classList.add('hidden');
+                     setTimeout(() => {
+                        preloader.style.display = 'none';
+                        handleDirectLink(); // Check for direct links after preloader is gone
+                    }, 500);
+                }
+            }, 750);
+
+            // Initial Filter & Viewed Status
+            const viewedPosters = getViewedPosters();
+            document.querySelectorAll('.poster-card').forEach(item => {
+                const isMainVisible = item.getAttribute('data-main-visible') !== 'false';
+                if (!isMainVisible) {
+                    item.classList.add('hidden');
+                }
+
+                const posterId = item.dataset.posterId;
+                if (posterId && viewedPosters.has(posterId)) {
+                    item.classList.add('viewed');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+
