@@ -7,8 +7,6 @@
     <link rel="icon" type="image/x-icon" href="favicon.png">
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Tone.js for Sound Effects -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
     <!-- Google Fonts: Chakra Petch for headings, Space Mono for body -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -84,7 +82,12 @@
             transition: transform 0.3s ease;
             box-shadow: 0 0 30px rgba(167, 139, 250, 0.5);
         }
-        
+        #modal-img {
+            transition: opacity 0.2s ease;
+        }
+        #modal-img.is-loading {
+            opacity: 0;
+        }
         body.modal-open { overflow: hidden; }
 
         .animate-on-scroll { opacity: 0; transform: translateY(30px); transition: opacity 0.5s ease-out, transform 0.5s ease-out; }
@@ -143,7 +146,7 @@
         <section id="about" class="mb-16 p-8 rounded-lg border border-gray-700 bg-gray-800/50 backdrop-blur-md">
             <h2 class="text-2xl font-bold text-violet-400 text-center mb-4">ABOUT THE ARTIST</h2>
             <p class="text-center max-w-3xl mx-auto text-gray-400">
-                I'm a digital artist and graphic designer passionate about blending futuristic aesthetics with modern typography. This space is my visual playground—a collection of personal projects, experiments, and client work. My goal is to push creative boundaries and explore new techniques.
+                I'm a digital artist and graphic designer passionate about blending futuristic aesthetics with modern typography. This space is my visual playground - a collection of personal projects, experiments, and client work. My goal is to push creative boundaries and explore new techniques.
             </p>
         </section>
 
@@ -169,33 +172,33 @@
             </div>
             <div class="poster-card animate-on-scroll rounded-lg overflow-hidden cursor-pointer" data-category="glass" data-poster-id="poster-2" data-tools="Photoshop" onclick="openModal(this)">
                  <span class="new-indicator">!</span>
-                <img loading="lazy" src="posters/a4color_esdeekid.jpg" alt="EsDeeKid" class="w-full h-auto" data-large-src="posters/a4color_esdeekid.jpg">
+                <img loading="lazy" src="posters/a4color_esdeekid.jpg" alt="EsDeeKid" class="w-full h-auto" data-large-src="highres_posters/a4color_esdeekid.png">
                 <div class="p-5"><h3 class="text-xl font-semibold text-violet-400">EsDeeKid - Cali Man</h3><p class="text-gray-400 mt-1">Again with the liquid glass.</p></div>
             </div>
             <div class="poster-card animate-on-scroll rounded-lg overflow-hidden cursor-pointer" data-category="ai glass" data-poster-id="poster-3" data-tools="Photoshop,AI-Generated" onclick="openModal(this)">
                  <span class="new-indicator">!</span>
-                <img loading="lazy" src="posters/Tyler The Creator.jpg" alt="Tyler The Creator" class="w-full h-auto" data-large-src="posters/Tyler The Creator.jpg">
+                <img loading="lazy" src="posters/Tyler The Creator.jpg" alt="Tyler The Creator" class="w-full h-auto" data-large-src="highres_posters/Tyler The Creator.png">
                 <div class="p-5"><h3 class="text-xl font-semibold text-violet-400">Tyler The Creator - See You Again</h3><p class="text-gray-400 mt-1">AI experimentation along with liquid glass technique.</p></div>
             </div>
             <div class="poster-card animate-on-scroll rounded-lg overflow-hidden cursor-pointer" data-category="typography" data-poster-id="poster-4" data-tools="Photoshop" onclick="openModal(this)">
                  <span class="new-indicator">!</span>
-                <img loading="lazy" src="posters/heavyweight.jpg" alt="Yeat" class="w-full h-auto" data-large-src="posters/heavyweight.jpg">
-                <div class="p-5"><h3 class="text-xl font-semibold text-violet-400">Yeat - Hëavyweight</h3><p class="text-gray-400 mt-1">Full brainstorming.</p></div>
+                <img loading="lazy" src="posters/heavyweight.jpg" alt="Yeat" class="w-full h-auto" data-large-src="highres_posters/heavyweight.png">
+                <div class="p-5"><h3 class="text-xl font-semibold text-violet-400">Yeat - Heavyweight</h3><p class="text-gray-400 mt-1">Full brainstorming.</p></div>
             </div>
             <div class="poster-card animate-on-scroll rounded-lg overflow-hidden cursor-pointer" data-category="glass" data-poster-id="poster-5" data-tools="Photoshop" onclick="openModal(this)">
                  <span class="new-indicator">!</span>
-                <img loading="lazy" src="posters/Untitled-1.jpg" alt="Jessie Murph" class="w-full h-auto" data-large-src="posters/Untitled-1.jpg">
+                <img loading="lazy" src="posters/Untitled-1.jpg" alt="Jessie Murph" class="w-full h-auto" data-large-src="highres_posters/Untitled-1.png">
                 <div class="p-5"><h3 class="text-xl font-semibold text-violet-400">Jessie Murph - Always Been You</h3><p class="text-gray-400 mt-1">Taking requests from my friends and their favourite artists.</p></div>
             </div>
             <div class="poster-card animate-on-scroll rounded-lg overflow-hidden cursor-pointer" data-category="typography" data-poster-id="poster-6" data-tools="Photoshop" onclick="openModal(this)">
                  <span class="new-indicator">!</span>
-                <img loading="lazy" src="highres_posters/dave.png" alt="Dave" class="w-full h-auto" data-large-src="posters/dave.jpg">
+                <img loading="lazy" src="posters/dave.png" alt="Dave" class="w-full h-auto" data-large-src="highres_posters/dave.png">
                 <div class="p-5"><h3 class="text-xl font-semibold text-violet-400">Santan Dave - We Are All Alone In This Together</h3><p class="text-gray-400 mt-1">Typography and texture printing.</p></div>
             </div>
             <div class="poster-card animate-on-scroll rounded-lg overflow-hidden cursor-pointer" data-category="glass" data-poster-id="poster-7" data-tools="Photoshop" onclick="openModal(this)">
                  <span class="new-indicator">!</span>
-                <img loading="lazy" src="posters/Yeat.jpg" alt="Yeat" class="w-full h-auto" data-large-src="posters/Yeat.jpg">
-                <div class="p-5"><h3 class="text-xl font-semibold text-violet-400">Yeat - Comë n Go</h3><p class="text-gray-400 mt-1">A test with Apple's Liquid Glass technique.</p></div>
+                <img loading="lazy" src="posters/Yeat.jpg" alt="Yeat" class="w-full h-auto" data-large-src="highres_posters/Yeat.png">
+                <div class="p-5"><h3 class="text-xl font-semibold text-violet-400">Yeat - Come n Go</h3><p class="text-gray-400 mt-1">A test with Apple's Liquid Glass technique.</p></div>
             </div>
         </div>
 
@@ -365,13 +368,12 @@
         const artistNameInput = document.getElementById('artist');
         const albumNameInput = document.getElementById('album');
         const celebrityNameInput = document.getElementById('celebrity-name');
-        const soundOnIcon = document.getElementById('sound-on-icon');
-        const soundOffIcon = document.getElementById('sound-off-icon');
         
         // --- State Variables ---
         let currentPosterIndex = 0;
         let visiblePosters = [];
         const VIEWED_POSTERS_KEY = 'viewedPosters';
+        let modalImageRequestId = 0;
 
 
         // --- Helper Functions ---
@@ -405,6 +407,27 @@
             }
         };
 
+        const preloadImage = (src) => new Promise(resolve => {
+            if (!src) {
+                resolve();
+                return;
+            }
+
+            const image = new Image();
+            image.onload = () => resolve();
+            image.onerror = () => resolve();
+            image.src = src;
+        });
+
+        const preloadPosterImages = () => {
+            const posterSources = Array.from(document.querySelectorAll('.poster-card img'))
+                .map(img => img.dataset.largeSrc || img.src)
+                .filter(Boolean);
+
+            const uniqueSources = [...new Set(posterSources)];
+            return Promise.allSettled(uniqueSources.map(preloadImage));
+        };
+
         // --- Modal & Lightbox Logic ---
         function updateModalContent(posterElement) {
             markPosterAsViewed(posterElement); // Mark as viewed on navigation
@@ -412,12 +435,35 @@
             const title = posterElement.querySelector('h3').innerText;
             const description = posterElement.querySelector('p').innerText;
             const tools = posterElement.dataset.tools;
+            const nextImageSrc = img.dataset.largeSrc || img.src;
+            const requestId = ++modalImageRequestId;
             
-            modalImg.src = img.dataset.largeSrc || img.src;
             modalTitle.innerText = title;
             modalDescription.innerText = description;
             modalTitleMobile.innerText = title;
             modalDescriptionMobile.innerText = description;
+
+            modalImg.classList.add('is-loading');
+            modalImg.removeAttribute('src');
+
+            const preloadedImage = new Image();
+            preloadedImage.onload = () => {
+                if (requestId !== modalImageRequestId) return;
+                modalImg.src = nextImageSrc;
+                requestAnimationFrame(() => {
+                    if (requestId !== modalImageRequestId) return;
+                    modalImg.classList.remove('is-loading');
+                });
+            };
+            preloadedImage.onerror = () => {
+                if (requestId !== modalImageRequestId) return;
+                modalImg.src = nextImageSrc;
+                requestAnimationFrame(() => {
+                    if (requestId !== modalImageRequestId) return;
+                    modalImg.classList.remove('is-loading');
+                });
+            };
+            preloadedImage.src = nextImageSrc;
 
             // Update tools tags
             modalToolsContainer.innerHTML = '';
@@ -447,7 +493,6 @@
         }
         
         function openModal(element) {
-            openSound.triggerAttackRelease(["C4", "E4", "G4"], "16n");
             visiblePosters = Array.from(document.querySelectorAll('.poster-card:not(.hidden)'));
             currentPosterIndex = visiblePosters.indexOf(element);
             
@@ -459,7 +504,6 @@
         }
 
         function closeModal() {
-            clickSound.triggerAttackRelease('C4', '8n');
             document.body.classList.remove('modal-open');
             modalContent.classList.add('scale-95');
             modal.classList.add('opacity-0');
@@ -477,11 +521,6 @@
                     left: `${posX}px`,
                     top: `${posY}px`
                 }, { duration: 500, fill: "forwards" });
-            });
-             document.body.addEventListener('mouseover', e => {
-                if (e.target.matches('a, button, .poster-card, input, textarea')) {
-                    hoverSound.triggerAttackRelease('C5', '16n');
-                }
             });
         }
         
@@ -503,13 +542,12 @@
         
         toTopButton.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
 
-        prevBtn.addEventListener('click', (e) => { e.stopPropagation(); showPrevPoster(); clickSound.triggerAttackRelease('E4', '8n'); });
-        nextBtn.addEventListener('click', (e) => { e.stopPropagation(); showNextPoster(); clickSound.triggerAttackRelease('E4', '8n'); });
+        prevBtn.addEventListener('click', (e) => { e.stopPropagation(); showPrevPoster(); });
+        nextBtn.addEventListener('click', (e) => { e.stopPropagation(); showNextPoster(); });
 
 
         filterContainer.addEventListener('click', (event) => {
             if (event.target.tagName !== 'BUTTON') return;
-            clickSound.triggerAttackRelease('G4', '8n');
             filterContainer.querySelector('.active').classList.remove('active');
             event.target.classList.add('active');
 
@@ -537,7 +575,6 @@
 
         // --- Form Type Switching Logic ---
         typeArtistBtn.addEventListener('click', () => {
-            clickSound.triggerAttackRelease('G4', '8n');
             typeArtistBtn.classList.add('active');
             typeCelebrityBtn.classList.remove('active');
             artistFields.classList.remove('hidden');
@@ -549,7 +586,6 @@
         });
 
         typeCelebrityBtn.addEventListener('click', () => {
-            clickSound.triggerAttackRelease('G4', '8n');
             typeCelebrityBtn.classList.add('active');
             typeArtistBtn.classList.remove('active');
             celebrityFields.classList.remove('hidden');
@@ -603,6 +639,17 @@
                 'TRANSMISSION_COMPLETE'
             ];
             let phraseIndex = 0;
+            let phraseSequenceFinished = false;
+            let posterPreloadFinished = false;
+
+            const completeInitialLoad = () => {
+                if (!phraseSequenceFinished || !posterPreloadFinished) return;
+                preloader.classList.add('hidden');
+                setTimeout(() => {
+                    preloader.style.display = 'none';
+                    handleDirectLink(); // Check for direct links after preloader is gone
+                }, 500);
+            };
 
             const interval = setInterval(() => {
                 phraseIndex++;
@@ -610,13 +657,21 @@
                     preloaderText.textContent = phrases[phraseIndex];
                 } else {
                     clearInterval(interval);
-                    preloader.classList.add('hidden');
-                     setTimeout(() => {
-                        preloader.style.display = 'none';
-                        handleDirectLink(); // Check for direct links after preloader is gone
-                    }, 500);
+                    phraseSequenceFinished = true;
+                    if (!posterPreloadFinished) {
+                        preloaderText.textContent = 'CACHING_POSTERS...';
+                    }
+                    completeInitialLoad();
                 }
             }, 750);
+
+            preloadPosterImages().then(() => {
+                posterPreloadFinished = true;
+                if (!phraseSequenceFinished) {
+                    preloaderText.textContent = 'CACHING_POSTERS...';
+                }
+                completeInitialLoad();
+            });
 
             // Initial Filter & Viewed Status
             const viewedPosters = getViewedPosters();
